@@ -110,7 +110,7 @@ public static class MauiAppBuilderExtensions
         {
             if (view is Page)
             {
-                _client.TrackPageView(view.GetType().Name);
+                _client?.TrackPageView(view.GetType().Name);
             }
         });
     }

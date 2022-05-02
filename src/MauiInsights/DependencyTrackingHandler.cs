@@ -33,8 +33,8 @@ namespace MauiInsights
 
         private static DependencyTelemetry GetTelemetry(HttpRequestMessage request)
         {
-            var host = request.RequestUri.Host;
-            var call = request.RequestUri.AbsolutePath;
+            var host = request.RequestUri?.Host ?? "Unknown url";
+            var call = request.RequestUri?.AbsolutePath ?? "Unknown url";
             var operationId = Guid.NewGuid().ToString().Replace("-", "");
             var telemetry = new DependencyTelemetry("Http", host, call, "");
             telemetry.Context.Operation.Id = operationId;
