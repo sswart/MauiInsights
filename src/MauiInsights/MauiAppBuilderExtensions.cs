@@ -1,4 +1,5 @@
-﻿using Microsoft.ApplicationInsights;
+﻿using MauiInsights.CrashHandling;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
@@ -17,6 +18,13 @@ public static class MauiAppBuilderExtensions
         SetupHttpDependecyTracking(appBuilder);
         SetupPageViewTelemetry();
         SetupLogger(appBuilder, appInsightsConnectionString);
+        return appBuilder;
+    }
+
+    public static MauiAppBuilder AddCrashLogging(this MauiAppBuilder appBuilder, string crashLogDirectory)
+    {
+        var crashHandler = new CrashLogger(crashLogDirectory);
+        appBuilder.Services.AddSingleton(crashHandler);
         return appBuilder;
     }
 
