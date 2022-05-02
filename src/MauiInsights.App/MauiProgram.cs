@@ -10,7 +10,7 @@ public static class MauiProgram
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<TestApp>()
-			.AddTelemetry("<connection string>")
+			.AddApplicationInsights("<connection string>")
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
