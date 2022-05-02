@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.Maui">
+        <HintPath>..\..\..\..\..\Program Files\dotnet\packs\Microsoft.Maui.Core.Ref.android\6.0.300-rc.2.5513\ref\net6.0-android30.0\Microsoft.Maui.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.Maui.Controls">
+        <HintPath>..\..\..\..\..\Program Files\dotnet\packs\Microsoft.Maui.Controls.Ref.android\6.0.300-rc.2.5513\ref\net6.0-android30.0\Microsoft.Maui.Controls.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
+      <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.20.0" />
+    </ItemGroup>
+
+</Project>
