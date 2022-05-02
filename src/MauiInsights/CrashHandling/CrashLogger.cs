@@ -13,7 +13,7 @@ namespace MauiInsights.CrashHandling
             TaskScheduler.UnobservedTaskException += (sender, e) => LogToFileSystem(e.Exception, crashlogDirectory);
         }
 
-        private void EnsureCanWrite(string crashlogDirectory)
+        private static void EnsureCanWrite(string crashlogDirectory)
         {
             var path = Path.Combine(crashlogDirectory, $"testfile{CrashLogExtension}");
             File.WriteAllText(path, "test");
@@ -34,6 +34,7 @@ namespace MauiInsights.CrashHandling
             var jsonWriter = new JsonSerializationWriter(writer);
             jsonWriter.WriteStartObject();
             telemetry.SerializeData(jsonWriter);
+            jsonWriter.WriteProperty(nameof(ExceptionInfo.timestamp), telemetry.Timestamp);
             jsonWriter.WriteEndObject();
         }
 
@@ -48,7 +49,10 @@ namespace MauiInsights.CrashHandling
                 {
                     continue;
                 }
-                yield return new ExceptionTelemetry(exceptionInfo.exceptions.Select(e => e.Map()), SeverityLevel.Error, "", new Dictionary<string, string>(), new Dictionary<string, double>());
+                yield return new ExceptionTelemetry(exceptionInfo.exceptions.Select(e => e.Map()), SeverityLevel.Error, "", new Dictionary<string, string>(), new Dictionary<string, double>())
+                {
+                    Timestamp = exceptionInfo.timestamp
+                };
             }
         }
 
