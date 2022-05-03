@@ -4,10 +4,10 @@ using Microsoft.ApplicationInsights.Extensibility;
 
 namespace MauiInsights
 {
-    internal class AdditionalPropertiesProcessor : ITelemetryInitializer
+    internal class AdditionalPropertiesInitializer : ITelemetryInitializer
     {
         private readonly IDictionary<string, string> _additionalProperties;
-        public AdditionalPropertiesProcessor(IDictionary<string, string> additionalProperties)
+        public AdditionalPropertiesInitializer(IDictionary<string, string> additionalProperties)
         {
             _additionalProperties = additionalProperties;
         }
@@ -23,7 +23,7 @@ namespace MauiInsights
         }
     }
 
-    internal class ApplicationInfoProcessor : ITelemetryInitializer
+    internal class ApplicationInfoInitializer : ITelemetryInitializer
     {
         public void Initialize(ITelemetry item)
         {

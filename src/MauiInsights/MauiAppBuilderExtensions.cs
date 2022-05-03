@@ -108,10 +108,7 @@ public static class MauiAppBuilderExtensions
 
     private static void SetupTelemetryClient(MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration)
     {
-        var telemetryConfiguration = new TelemetryConfiguration()
-        {
-            ConnectionString = configuration.ApplicationInsightsConnectionString
-        };
+        var telemetryConfiguration = GetTelemetryConfiguration(configuration);
         _client = new TelemetryClient(telemetryConfiguration);
         appBuilder.Services.AddSingleton(_client);
     }
@@ -152,8 +149,14 @@ public static class MauiAppBuilderExtensions
         {
             ConnectionString = configuration.ApplicationInsightsConnectionString
         };
-        telemetryConfig.TelemetryInitializers.Add(new AdditionalPropertiesProcessor(configuration.AdditionalTelemetryProperties));
-        telemetryConfig.TelemetryInitializers.Add(new ApplicationInfoProcessor());
+        telemetryConfig.TelemetryInitializers.Add(new AdditionalPropertiesInitializer(configuration.AdditionalTelemetryProperties));
+        telemetryConfig.TelemetryInitializers.Add(new ApplicationInfoInitializer());
+        
+        foreach(var initializer in configuration.TelemetryInitializers)
+        {
+            telemetryConfig.TelemetryInitializers.Add(initializer);
+        }
+
         return telemetryConfig;
     }
 }
