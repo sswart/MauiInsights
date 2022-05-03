@@ -16,12 +16,13 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 		<SignAssembly>False</SignAssembly>
 		<PackageId>Swart.ApplicationInsights.MAUI</PackageId>
-		<PackageLicenseFile>C:\Users\jesse\dev\MauiInsights\LICENSE.txt</PackageLicenseFile>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 		<Authors>Jesse Swart</Authors>
 		<Company />
 		<Description>Simple Application Insights configuration for MAUI</Description>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageTags>.NET;MAUI;Application Insights;Telemetry</PackageTags>
+		<RepositoryUrl>https://github.com/sswart/MauiInsights</RepositoryUrl>
 	</PropertyGroup>
 
     <ItemGroup>
@@ -37,6 +38,10 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Include="..\..\LICENSE.txt" Pack="true" PackagePath="" />
+	</ItemGroup>
+	
 	<ItemGroup>
 	  <None Include="..\..\README.md">
 	    <Pack>True</Pack>
