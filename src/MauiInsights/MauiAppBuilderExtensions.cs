@@ -45,45 +45,47 @@ public static class MauiAppBuilderExtensions
 
     public static MauiAppBuilder AddCrashLogging(this MauiAppBuilder appBuilder, IConnectivity connectivity, string crashlogDirectory)
     {
-        var crashHandler = new CrashLogger(crashlogDirectory);
-        appBuilder.Services.AddSingleton(crashHandler);
+        var crashLogger = new CrashLogger(crashlogDirectory);
+        appBuilder.Services.AddSingleton(crashLogger);
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) => crashLogger.LogToFileSystem(e.ExceptionObject as Exception);
+        TaskScheduler.UnobservedTaskException += (sender, e) => crashLogger.LogToFileSystem(e.Exception);
 
-        SetupCrashlogLifecycleEvents(appBuilder, connectivity, crashlogDirectory);
+        SetupCrashlogLifecycleEvents(appBuilder, connectivity, crashLogger);
         return appBuilder;
     }
 
-    private static void SetupCrashlogLifecycleEvents(MauiAppBuilder appBuilder, IConnectivity connectivity, string crashlogDirectory)
+    private static void SetupCrashlogLifecycleEvents(MauiAppBuilder appBuilder, IConnectivity connectivity, CrashLogger crashLogger)
     {
         appBuilder.ConfigureLifecycleEvents(builder =>
         {
 #if ANDROID
 				builder.AddAndroid(androidBuilder =>
 				{
-					androidBuilder.OnStart(activity => SendCrashes(connectivity, crashlogDirectory));
+					androidBuilder.OnStart(activity => SendCrashes(connectivity, crashLogger));
 				});
 #elif IOS
                 builder.AddiOS(ios => ios
-                        .WillFinishLaunching((app, dict) => SendCrashes(connectivity, crashlogDirectory)));
+                        .WillFinishLaunching((app, dict) => SendCrashes(connectivity, crashLogger)));
 
 #elif WINDOWS
                 builder.AddWindows(windows => windows
-                          .OnLaunched((window, args) => SendCrashes(connectivity, crashlogDirectory)));
+                          .OnLaunched((window, args) => SendCrashes(connectivity, crashLogger)));
 #endif
         });
     }
 
-    private static void SendCrashes(IConnectivity connectivity, string crashlogDirectory)
+    private static void SendCrashes(IConnectivity connectivity, CrashLogger crashLogger)
     {
         Task.Run(async () =>
         {
             if (await connectivity.HasInternetConnection() && _client != null)
             {
-                var crashes = CrashLogger.GetCrashLog(crashlogDirectory);
+                var crashes = crashLogger.GetCrashLog();
                 await foreach(var crash in crashes)
                 {
                     _client.TrackException(crash);
                 }
-                CrashLogger.ClearCrashLog(crashlogDirectory);
+                crashLogger.ClearCrashLog();
             }
         });
     }

@@ -5,12 +5,12 @@ namespace MauiInsights.CrashHandling
 {
     internal class CrashLogger
     {
+        private const string CrashLogExtension = ".crashlog";
+        private readonly string _crashlogDirectory;
         public CrashLogger(string crashlogDirectory)
         {
             EnsureCanWrite(crashlogDirectory);
-
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) => LogToFileSystem(e.ExceptionObject as Exception, crashlogDirectory);
-            TaskScheduler.UnobservedTaskException += (sender, e) => LogToFileSystem(e.Exception, crashlogDirectory);
+            _crashlogDirectory = crashlogDirectory;
         }
 
         private static void EnsureCanWrite(string crashlogDirectory)
@@ -20,16 +20,14 @@ namespace MauiInsights.CrashHandling
             File.Delete(path);
         }
 
-        private const string CrashLogExtension = ".crashlog";
-
-        private static void LogToFileSystem(Exception? e, string crashlogDirectory)
+        public void LogToFileSystem(Exception? e)
         {
             var telemetry = new ExceptionTelemetry(e)
             {
                 Timestamp = DateTimeOffset.UtcNow
             };
 
-            var path = Path.Combine(crashlogDirectory, $"{Guid.NewGuid()}{CrashLogExtension}");
+            var path = Path.Combine(_crashlogDirectory, $"{Guid.NewGuid()}{CrashLogExtension}");
             using var writer = new StreamWriter(File.OpenWrite(path));
             var jsonWriter = new JsonSerializationWriter(writer);
             jsonWriter.WriteStartObject();
@@ -39,9 +37,9 @@ namespace MauiInsights.CrashHandling
         }
 
         private static IEnumerable<string> GetCrashLogFiles(string crashlogDirectory) => Directory.GetFiles(crashlogDirectory).Where(f => f.EndsWith(CrashLogExtension));
-        public static async IAsyncEnumerable<ExceptionTelemetry> GetCrashLog(string crashlogDirectory)
+        public async IAsyncEnumerable<ExceptionTelemetry> GetCrashLog()
         {
-            foreach(var file in GetCrashLogFiles(crashlogDirectory))
+            foreach(var file in GetCrashLogFiles(_crashlogDirectory))
             {
                 using var stream = File.OpenRead(file);
                 var exceptionInfo = await JsonSerializer.DeserializeAsync<ExceptionInfo>(stream);
@@ -56,9 +54,9 @@ namespace MauiInsights.CrashHandling
             }
         }
 
-        public static void ClearCrashLog(string crashlogDirectory)
+        public void ClearCrashLog()
         {
-            foreach(var file in GetCrashLogFiles(crashlogDirectory))
+            foreach(var file in GetCrashLogFiles(_crashlogDirectory))
             {
                 File.Delete(file);
             }

@@ -8,7 +8,16 @@ namespace MauiInsights.CrashHandling
     {
         public ExceptionDetailsInfo Map()
         {
-            return new ExceptionDetailsInfo(id, outerId, typeName, message, hasFullStack, "", parsedStack?.Select(s => s.Map()).ToList());
+            return new ExceptionDetailsInfo(id, outerId, typeName, message, hasFullStack, "", GetParsedStackOrEmpty());
+        }
+
+        private List<StackFrame> GetParsedStackOrEmpty()
+        {
+            if (parsedStack != null)
+            {
+                return parsedStack.Select(s => s.Map()).ToList();
+            }
+            return new List<StackFrame>();
         }
     }
     public record StackTracePart(string assembly, string fileName, int level, int line, string method)

@@ -17,6 +17,11 @@ public partial class MainPage : ContentPage
 
 	private void OnCounterClicked(object sender, EventArgs e)
 	{
+		if (count > 5)
+        {
+			throw new ApplicationException("Count is too high!");
+        }
+
 		count++;
 		CounterLabel.Text = $"Current count: {count}";
 
