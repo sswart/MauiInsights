@@ -13,12 +13,18 @@ namespace MauiInsights;
 public static class MauiAppBuilderExtensions
 {
     private static TelemetryClient? _client;
-    public static MauiAppBuilder AddApplicationInsights(this MauiAppBuilder appBuilder, string appInsightsConnectionString)
+    public static MauiAppBuilder AddApplicationInsights(this MauiAppBuilder appBuilder, string appInsightsConnectionString) => AddApplicationInsights(appBuilder, new MauiInsightsConfiguration { ApplicationInsightsConnectionString = appInsightsConnectionString });
+
+    public static MauiAppBuilder AddApplicationInsights(this MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration)
     {
-        SetupTelemetryClient(appBuilder, appInsightsConnectionString);
+        if (string.IsNullOrEmpty(configuration.ApplicationInsightsConnectionString))
+        {
+            throw new ArgumentException("Configuration must have a valid Application Insights Connection string", nameof(configuration));
+        }
+        SetupTelemetryClient(appBuilder, configuration);
         SetupHttpDependecyTracking(appBuilder);
         SetupPageViewTelemetry();
-        SetupLogger(appBuilder, appInsightsConnectionString);
+        SetupLogger(appBuilder, configuration);
         SetupTelemetryLifecycleEvents(appBuilder);
         return appBuilder;
     }
@@ -100,13 +106,13 @@ public static class MauiAppBuilderExtensions
         });
     }
 
-    private static void SetupTelemetryClient(MauiAppBuilder appBuilder, string appInsightsConnectionString)
+    private static void SetupTelemetryClient(MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration)
     {
-        var configuration = new TelemetryConfiguration()
+        var telemetryConfiguration = new TelemetryConfiguration()
         {
-            ConnectionString = appInsightsConnectionString,
+            ConnectionString = configuration.ApplicationInsightsConnectionString
         };
-        _client = new TelemetryClient(configuration);
+        _client = new TelemetryClient(telemetryConfiguration);
         appBuilder.Services.AddSingleton(_client);
     }
 
@@ -127,12 +133,9 @@ public static class MauiAppBuilderExtensions
         });
     }
 
-    private static void SetupLogger(MauiAppBuilder appBuilder, string appInsightsConnectionString)
+    private static void SetupLogger(MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration)
     {
-        var telemetryConfig = new TelemetryConfiguration()
-        {
-            ConnectionString = appInsightsConnectionString
-        };
+        var telemetryConfig = GetTelemetryConfiguration(configuration);
         var logConfig = new ApplicationInsightsLoggerOptions()
         {
             FlushOnDispose = true,
@@ -141,5 +144,16 @@ public static class MauiAppBuilderExtensions
         appBuilder.Logging.AddProvider(
             new ApplicationInsightsLoggerProvider(
                 Options.Create(telemetryConfig), Options.Create(logConfig)));
+    }
+
+    private static TelemetryConfiguration GetTelemetryConfiguration(MauiInsightsConfiguration configuration)
+    {
+        var telemetryConfig = new TelemetryConfiguration()
+        {
+            ConnectionString = configuration.ApplicationInsightsConnectionString
+        };
+        telemetryConfig.TelemetryInitializers.Add(new AdditionalPropertiesProcessor(configuration.AdditionalTelemetryProperties));
+        telemetryConfig.TelemetryInitializers.Add(new ApplicationInfoProcessor());
+        return telemetryConfig;
     }
 }
