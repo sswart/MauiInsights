@@ -2,9 +2,9 @@
 
 namespace MauiInsights.CrashHandling
 {
-    public record ExceptionInfo(int ver, List<ExceptionData> exceptions, DateTimeOffset timestamp);
+    internal record ExceptionInfo(int ver, List<ExceptionData> exceptions, DateTimeOffset timestamp);
 
-    public record ExceptionData(int id, int outerId, string typeName, string message, bool hasFullStack, List<StackTracePart>? parsedStack)
+    internal record ExceptionData(int id, int outerId, string typeName, string message, bool hasFullStack, List<StackTracePart>? parsedStack)
     {
         public ExceptionDetailsInfo Map()
         {
@@ -20,7 +20,7 @@ namespace MauiInsights.CrashHandling
             return new List<StackFrame>();
         }
     }
-    public record StackTracePart(string assembly, string fileName, int level, int line, string method)
+    internal record StackTracePart(string assembly, string fileName, int level, int line, string method)
     {
         public StackFrame Map()
         {

@@ -59,7 +59,7 @@ namespace MauiInsights
         }
     }
 
-    public class DependencyTrackingHandlerFilter : IHttpMessageHandlerBuilderFilter
+    internal class DependencyTrackingHandlerFilter : IHttpMessageHandlerBuilderFilter
     {
         private readonly IServiceProvider _serviceProvider;
         public DependencyTrackingHandlerFilter(IServiceProvider serviceProvider)
