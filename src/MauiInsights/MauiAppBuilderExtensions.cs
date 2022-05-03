@@ -71,7 +71,11 @@ public static class MauiAppBuilderExtensions
 				});
 #elif IOS
                 builder.AddiOS(ios => ios
-                        .WillFinishLaunching((app, dict) => SendCrashes(connectivity, crashLogger)));
+                        .WillFinishLaunching((app, dict) =>
+                        {
+                            SendCrashes(connectivity, crashLogger);
+                            return true;
+                        }));
 
 #elif WINDOWS
                 builder.AddWindows(windows => windows
