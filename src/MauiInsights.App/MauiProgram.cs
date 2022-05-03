@@ -11,7 +11,7 @@ public static class MauiProgram
 		builder
 			.UseMauiApp<TestApp>()
 			.AddApplicationInsights("<connection string>")
-			.AddCrashLogging(new Connectivity(), FileSystem.CacheDirectory)
+			.AddCrashLogging()
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

@@ -43,6 +43,12 @@ public static class MauiAppBuilderExtensions
          });
     }
 
+    public static MauiAppBuilder AddCrashLogging(this MauiAppBuilder appBuilder) => AddCrashLogging(appBuilder, new EssentialsConnectivity(), FileSystem.CacheDirectory);
+
+    public static MauiAppBuilder AddCrashLogging(this MauiAppBuilder appBuilder, string crashlogDirectory) => AddCrashLogging(appBuilder, new EssentialsConnectivity(), crashlogDirectory);
+
+    public static MauiAppBuilder AddCrashLogging(this MauiAppBuilder appBuilder, IConnectivity connectivity) => AddCrashLogging(appBuilder, connectivity, FileSystem.CacheDirectory);
+
     public static MauiAppBuilder AddCrashLogging(this MauiAppBuilder appBuilder, IConnectivity connectivity, string crashlogDirectory)
     {
         var crashLogger = new CrashLogger(crashlogDirectory);

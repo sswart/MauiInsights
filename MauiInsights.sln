@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MauiInsights.App", "src\Mau
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MauiInsights", "src\MauiInsights\MauiInsights.csproj", "{DD91979E-A7A0-45B2-8BB0-E0C3054A19FC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiInsights.Tests", "src\MauiInsights.Tests\MauiInsights.Tests.csproj", "{90257E74-AD9A-41CD-9292-2F90E639635D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DD91979E-A7A0-45B2-8BB0-E0C3054A19FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD91979E-A7A0-45B2-8BB0-E0C3054A19FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD91979E-A7A0-45B2-8BB0-E0C3054A19FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90257E74-AD9A-41CD-9292-2F90E639635D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90257E74-AD9A-41CD-9292-2F90E639635D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90257E74-AD9A-41CD-9292-2F90E639635D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90257E74-AD9A-41CD-9292-2F90E639635D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
