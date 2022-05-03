@@ -35,3 +35,7 @@ When manually constructing HttpClient or HttpMessageHandler instances, the Depen
 When using .AddCrashLogging(), any uncaught exceptions are written to the platforms default cache directory. On the next app start, if the device has an internet connection, these crash logs are then sent to Application Insights as exceptions.
 ### Application Insights TelemetryClient in DI Container
 An singleton instance of TelemetryClient is registered and available for any manual telemetry
+
+
+## Advanced scenarios
+If you want to extend your telemetry, use the .AddApplicationInsights() overload that accepts a MauiInsightsConfiguration. You can either add custom keyvalue pairs which will be added to the additional properties of the telemetry, or you can implement your own instances of ITelemetryInitializer to modify any telemetry that is sent.
