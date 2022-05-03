@@ -17,6 +17,11 @@
 		<SignAssembly>False</SignAssembly>
 		<PackageId>Swart.ApplicationInsights.MAUI</PackageId>
 		<PackageLicenseFile>C:\Users\jesse\dev\MauiInsights\LICENSE.txt</PackageLicenseFile>
+		<Authors>Jesse Swart</Authors>
+		<Company />
+		<Description>Simple Application Insights configuration for MAUI</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>.NET;MAUI;Application Insights;Telemetry</PackageTags>
 	</PropertyGroup>
 
     <ItemGroup>
@@ -30,5 +35,12 @@
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
 			<_Parameter1>MauiInsights.Tests</_Parameter1>
 		</AssemblyAttribute>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 </Project>
