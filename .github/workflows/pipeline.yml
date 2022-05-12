@@ -1,0 +1,62 @@
+name: .NET
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+
+    - uses: paulhatch/semantic-version@v4.0.2
+      with:
+        tag_prefix: "v"
+        # A string which, if present in a git commit, indicates that a change represents a
+        # major (breaking) change, supports regular expressions wrapped with '/'
+        major_pattern: "(MAJOR)"
+        # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
+        minor_pattern: "(MINOR)"
+        # A string to determine the format of the version output
+        format: "${major}.${minor}.${patch}-prerelease${increment}"
+        # Optional path to check for changes. If any changes are detected in the path the
+        # 'changed' output will true. Enter multiple paths separated by spaces.
+        change_path: "src"
+        # If this is set to true, *every* commit will be treated as a new version.
+        bump_each_commit: true
+      id: versioning
+
+    - name: Install workloads
+      run: dotnet workload restore
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build "src/MauiInsights/MauiInsights.csproj" --no-restore /p:Version=${{steps.versioning.outputs.version}}
+
+    - name: Build test project
+      run: dotnet build "src/MauiInsights.Tests/MauiInsights.Tests.csproj" --no-restore /p:Version=${{steps.versioning.outputs.version}}
+    
+    - name: Test
+      run: dotnet test "src/MauiInsights.Tests/MauiInsights.Tests.csproj" --no-build --verbosity normal /p:Version=${{steps.versioning.outputs.version}}
+
+    - name: Pack
+      if: github.ref == 'refs/heads/master'
+      run: dotnet pack "src/MauiInsights/MauiInsights.csproj" /p:Version=${{steps.versioning.outputs.version}} --output .
+
+    - name: Publish
+      if: github.ref == 'refs/heads/master'
+      run: dotnet nuget push Swart.ApplicationInsights.MAUI.${{steps.versioning.outputs.version}}.nupkg --source https://api.nuget.org/v3/index.json --api-key ${API_KEY}
+      env:
+        API_KEY: ${{ secrets.NUGET_API_KEY }}
+
