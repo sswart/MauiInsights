@@ -22,18 +22,26 @@ namespace MauiInsights.CrashHandling
 
         public void LogToFileSystem(Exception? e)
         {
-            var telemetry = new ExceptionTelemetry(e)
+            try
             {
-                Timestamp = DateTimeOffset.UtcNow
-            };
+                var telemetry = new ExceptionTelemetry(e)
+                {
+                    Timestamp = DateTimeOffset.UtcNow
+                };
 
-            var path = Path.Combine(_crashlogDirectory, $"{Guid.NewGuid()}{CrashLogExtension}");
-            using var writer = new StreamWriter(File.OpenWrite(path));
-            var jsonWriter = new JsonSerializationWriter(writer);
-            jsonWriter.WriteStartObject();
-            telemetry.SerializeData(jsonWriter);
-            jsonWriter.WriteProperty(nameof(ExceptionInfo.timestamp), telemetry.Timestamp);
-            jsonWriter.WriteEndObject();
+                var path = Path.Combine(_crashlogDirectory, $"{Guid.NewGuid()}{CrashLogExtension}");
+                using var writer = new StreamWriter(File.OpenWrite(path));
+                var jsonWriter = new JsonSerializationWriter(writer);
+                jsonWriter.WriteStartObject();
+                telemetry.SerializeData(jsonWriter);
+                jsonWriter.WriteProperty(nameof(ExceptionInfo.timestamp), telemetry.Timestamp);
+                jsonWriter.WriteEndObject();
+            }
+            catch
+            {
+                // Swallow any exceptions.
+                // We are already in the context of handling an exception so just do nothing instead.
+            }
         }
 
         private static IEnumerable<string> GetCrashLogFiles(string crashlogDirectory) => Directory.GetFiles(crashlogDirectory).Where(f => f.EndsWith(CrashLogExtension));
