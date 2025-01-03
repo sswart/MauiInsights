@@ -1,5 +1,6 @@
 ﻿using MauiInsights.CrashHandling;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.AspNetCore;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;
@@ -13,15 +14,17 @@ namespace MauiInsights;
 public static class MauiAppBuilderExtensions
 {
     private static TelemetryClient? _client;
-    public static MauiAppBuilder AddApplicationInsights(this MauiAppBuilder appBuilder, string appInsightsConnectionString) => AddApplicationInsights(appBuilder, new MauiInsightsConfiguration { ApplicationInsightsConnectionString = appInsightsConnectionString });
+    public static MauiAppBuilder AddApplicationInsights(this MauiAppBuilder appBuilder, string appInsightsConnectionString, Action<TelemetryConfiguration>? configureTelemetry = null) => AddApplicationInsights(appBuilder, new MauiInsightsConfiguration { ApplicationInsightsConnectionString = appInsightsConnectionString }, configureTelemetry);
 
-    public static MauiAppBuilder AddApplicationInsights(this MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration)
+    public static MauiAppBuilder AddApplicationInsights(this MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration, Action<TelemetryConfiguration>? configureTelemetry = null)
     {
         if (string.IsNullOrEmpty(configuration.ApplicationInsightsConnectionString))
         {
             throw new ArgumentException("Configuration must have a valid Application Insights Connection string", nameof(configuration));
         }
-        SetupTelemetryClient(appBuilder, configuration);
+        configureTelemetry ??= _ => { };
+        
+        SetupTelemetryClient(appBuilder, configuration, configureTelemetry);
         SetupHttpDependecyTracking(appBuilder);
         SetupPageViewTelemetry();
         SetupLogger(appBuilder, configuration);
@@ -106,9 +109,10 @@ public static class MauiAppBuilderExtensions
         });
     }
 
-    private static void SetupTelemetryClient(MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration)
+    private static void SetupTelemetryClient(MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration, Action<TelemetryConfiguration> configureTelemetry)
     {
-        var telemetryConfiguration = GetTelemetryConfiguration(configuration);
+        var telemetryConfiguration = GetTelemetryConfiguration(appBuilder, configuration);
+        configureTelemetry(telemetryConfiguration);
         _client = new TelemetryClient(telemetryConfiguration);
         appBuilder.Services.AddSingleton(_client);
     }
@@ -132,7 +136,7 @@ public static class MauiAppBuilderExtensions
 
     private static void SetupLogger(MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration)
     {
-        var telemetryConfig = GetTelemetryConfiguration(configuration);
+        var telemetryConfig = GetTelemetryConfiguration(appBuilder, configuration);
         var logConfig = new ApplicationInsightsLoggerOptions()
         {
             FlushOnDispose = true,
@@ -143,7 +147,7 @@ public static class MauiAppBuilderExtensions
                 Options.Create(telemetryConfig), Options.Create(logConfig)));
     }
 
-    private static TelemetryConfiguration GetTelemetryConfiguration(MauiInsightsConfiguration configuration)
+    private static TelemetryConfiguration GetTelemetryConfiguration(MauiAppBuilder builder, MauiInsightsConfiguration configuration)
     {
         var telemetryConfig = new TelemetryConfiguration()
         {
@@ -155,6 +159,29 @@ public static class MauiAppBuilderExtensions
         foreach(var initializer in configuration.TelemetryInitializers)
         {
             telemetryConfig.TelemetryInitializers.Add(initializer);
+        }
+
+        var telemetryInitializers = builder.Services
+            .Where(s => s.ServiceType == typeof(ITelemetryInitializer) && (s.ImplementationInstance ?? s.KeyedImplementationInstance) is ITelemetryInitializer)
+            .Select(s => s.ImplementationInstance ?? s.KeyedImplementationInstance)
+            .Cast<ITelemetryInitializer>()
+            .ToList();
+        foreach(var initializer in telemetryInitializers)
+        {
+            telemetryConfig.TelemetryInitializers.Add(initializer);
+        }
+
+        var telemetryProcessors =
+            builder.Services.Where(s => s.ServiceType == typeof(ITelemetryProcessorFactory)).ToList();
+        
+        var serviceProvider = builder.Services.BuildServiceProvider();
+        
+        foreach (var processorDescriptor in telemetryProcessors)
+        {
+            if (processorDescriptor.ImplementationFactory is not Func<IServiceProvider, ITelemetryProcessorFactory>
+                factoryMethod) continue;
+            var factory = factoryMethod(serviceProvider);
+            telemetryConfig.TelemetryProcessorChainBuilder.Use(factory.Create);
         }
 
         return telemetryConfig;
