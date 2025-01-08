@@ -2,7 +2,7 @@
 
 namespace MauiInsights.CrashHandling
 {
-    internal record ExceptionInfo(int ver, List<ExceptionData> exceptions, DateTimeOffset timestamp);
+    internal record ExceptionInfo(int ver, List<ExceptionData> exceptions, DateTimeOffset timestamp, string sessionId);
 
     internal record ExceptionData(int id, int outerId, string typeName, string message, bool hasFullStack, List<StackTracePart>? parsedStack)
     {

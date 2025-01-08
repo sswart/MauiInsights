@@ -14,6 +14,7 @@ namespace MauiInsights;
 public static class MauiAppBuilderExtensions
 {
     private static TelemetryClient? _client;
+    private static SessionId? _sessionId;
     public static MauiAppBuilder AddApplicationInsights(this MauiAppBuilder appBuilder, string appInsightsConnectionString, Action<TelemetryConfiguration>? configureTelemetry = null) => AddApplicationInsights(appBuilder, new MauiInsightsConfiguration { ApplicationInsightsConnectionString = appInsightsConnectionString }, configureTelemetry);
 
     public static MauiAppBuilder AddApplicationInsights(this MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration, Action<TelemetryConfiguration>? configureTelemetry = null)
@@ -23,7 +24,8 @@ public static class MauiAppBuilderExtensions
             throw new ArgumentException("Configuration must have a valid Application Insights Connection string", nameof(configuration));
         }
         configureTelemetry ??= _ => { };
-        
+        _sessionId = new SessionId();
+        appBuilder.Services.AddSingleton(_sessionId);
         SetupTelemetryClient(appBuilder, configuration, configureTelemetry);
         SetupHttpDependecyTracking(appBuilder);
         SetupPageViewTelemetry();
@@ -60,11 +62,11 @@ public static class MauiAppBuilderExtensions
 
     public static MauiAppBuilder AddCrashLogging(this MauiAppBuilder appBuilder, IConnectivity connectivity, string crashlogDirectory)
     {
-        var crashLogger = new CrashLogger(crashlogDirectory);
+        var crashLogger = new CrashLogger(new CrashLogSettings(crashlogDirectory), _sessionId);
         appBuilder.Services.AddSingleton(crashLogger);
         AppDomain.CurrentDomain.UnhandledException += (sender, e) => crashLogger.LogToFileSystem(e.ExceptionObject as Exception);
         TaskScheduler.UnobservedTaskException += (sender, e) => crashLogger.LogToFileSystem(e.Exception);
-
+        
         SetupCrashlogLifecycleEvents(appBuilder, connectivity, crashLogger);
         return appBuilder;
     }
@@ -114,6 +116,7 @@ public static class MauiAppBuilderExtensions
         var telemetryConfiguration = GetTelemetryConfiguration(appBuilder, configuration);
         configureTelemetry(telemetryConfiguration);
         _client = new TelemetryClient(telemetryConfiguration);
+        _client.Context.Session.Id = _sessionId?.Value;
         appBuilder.Services.AddSingleton(_client);
     }
 
@@ -140,8 +143,9 @@ public static class MauiAppBuilderExtensions
         var logConfig = new ApplicationInsightsLoggerOptions()
         {
             FlushOnDispose = true,
-            TrackExceptionsAsExceptionTelemetry = true
+            TrackExceptionsAsExceptionTelemetry = true,
         };
+        
         appBuilder.Logging.AddProvider(
             new ApplicationInsightsLoggerProvider(
                 Options.Create(telemetryConfig), Options.Create(logConfig)));
@@ -151,10 +155,11 @@ public static class MauiAppBuilderExtensions
     {
         var telemetryConfig = new TelemetryConfiguration()
         {
-            ConnectionString = configuration.ApplicationInsightsConnectionString
+            ConnectionString = configuration.ApplicationInsightsConnectionString,
         };
         telemetryConfig.TelemetryInitializers.Add(new AdditionalPropertiesInitializer(configuration.AdditionalTelemetryProperties));
         telemetryConfig.TelemetryInitializers.Add(new ApplicationInfoInitializer());
+        telemetryConfig.TelemetryInitializers.Add(new SessionInfoInitializer(_sessionId));
         
         foreach(var initializer in configuration.TelemetryInitializers)
         {
@@ -183,7 +188,11 @@ public static class MauiAppBuilderExtensions
             var factory = factoryMethod(serviceProvider);
             telemetryConfig.TelemetryProcessorChainBuilder.Use(factory.Create);
         }
-
         return telemetryConfig;
     }
 }
+
+public record SessionId
+{
+    public string Value { get; } = Guid.NewGuid().ToString();
+};
