@@ -8,12 +8,12 @@ namespace MauiInsights.CrashHandling
     
     internal class CrashLogger
     {
-        private readonly TelemetryClient? _client;
+        private readonly SessionId? _sessionId;
         private const string CrashLogExtension = ".crashlog";
         private readonly string _crashlogDirectory;
-        public CrashLogger(CrashLogSettings settings, TelemetryClient? client)
+        public CrashLogger(CrashLogSettings settings, SessionId? sessionId)
         {
-            _client = client;
+            _sessionId = sessionId;
             EnsureCanWrite(settings.Directory);
             _crashlogDirectory = settings.Directory;
         }
@@ -33,7 +33,7 @@ namespace MauiInsights.CrashHandling
                 {
                     Timestamp = DateTimeOffset.UtcNow,
                 };
-                telemetry.Context.Session.Id = _client?.Context.Session.Id;
+                telemetry.Context.Session.Id = _sessionId?.Value;
                 
                 var path = Path.Combine(_crashlogDirectory, $"{Guid.NewGuid()}{CrashLogExtension}");
                 using var writer = new StreamWriter(File.OpenWrite(path));

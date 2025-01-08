@@ -16,8 +16,9 @@ namespace MauiInsights.Tests
             // Arrange
             var path = $"{Guid.NewGuid()}";
             Directory.CreateDirectory(path);
+            var sessionId = new SessionId();
             var message = "Cannot do this";
-            var logger = new CrashLogger(path);
+            var logger = new CrashLogger(new CrashLogSettings(path), sessionId);
 
             try
             {
@@ -31,6 +32,7 @@ namespace MauiInsights.Tests
                 log.Message.Should().Be(message);
                 log.ExceptionDetailsInfoList.Should().HaveCount(1);
                 log.ExceptionDetailsInfoList.First().TypeName.Should().Contain(nameof(InvalidOperationException));
+                log.Context.Session.Id.Should().Be(sessionId.Value);
             }
             finally
             {
@@ -45,7 +47,7 @@ namespace MauiInsights.Tests
             var path = $"{Guid.NewGuid()}";
             Directory.CreateDirectory(path);
             var message = "Cannot do this";
-            var logger = new CrashLogger(path);
+            var logger = new CrashLogger(new CrashLogSettings(path), new SessionId());
             logger.LogToFileSystem(new InvalidOperationException(message));
 
             // Act
@@ -60,7 +62,7 @@ namespace MauiInsights.Tests
         {
             var path = $"{Guid.NewGuid()}";
 
-            var act = () => new CrashLogger(path);
+            var act = () => new CrashLogger(new CrashLogSettings(path), new SessionId());
 
             act.Should().Throw<DirectoryNotFoundException>();
         }

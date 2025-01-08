@@ -62,7 +62,7 @@ public static class MauiAppBuilderExtensions
 
     public static MauiAppBuilder AddCrashLogging(this MauiAppBuilder appBuilder, IConnectivity connectivity, string crashlogDirectory)
     {
-        var crashLogger = new CrashLogger(new CrashLogSettings(crashlogDirectory), _client);
+        var crashLogger = new CrashLogger(new CrashLogSettings(crashlogDirectory), _sessionId);
         appBuilder.Services.AddSingleton(crashLogger);
         AppDomain.CurrentDomain.UnhandledException += (sender, e) => crashLogger.LogToFileSystem(e.ExceptionObject as Exception);
         TaskScheduler.UnobservedTaskException += (sender, e) => crashLogger.LogToFileSystem(e.Exception);
