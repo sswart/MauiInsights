@@ -8,15 +8,17 @@ namespace MauiInsights
     public class DependencyTrackingHandler : DelegatingHandler
     {
         private readonly TelemetryClient _client;
+        private readonly MauiInsightsConfiguration _configuration;
 
-        public DependencyTrackingHandler(TelemetryClient client)
+        public DependencyTrackingHandler(TelemetryClient client, MauiInsightsConfiguration configuration)
         {
             _client = client;
+            _configuration = configuration;
         }
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var telemetry = GetTelemetry(request);
-            SetOpenTelemetryHeaders(request, telemetry);
+            SetCorrelationHeaders(request, telemetry);
             telemetry.Start();
             HttpResponseMessage? response = null;
             try
@@ -50,15 +52,21 @@ namespace MauiInsights
             telemetry.ResultCode = statusCode > 0 ? statusCode.ToString(CultureInfo.InvariantCulture) : string.Empty;
         }
 
-        private void SetOpenTelemetryHeaders(HttpRequestMessage request, DependencyTelemetry telemetry)
+        private void SetCorrelationHeaders(HttpRequestMessage request, DependencyTelemetry telemetry)
         {
             var parentId = telemetry.Context.Operation.Id;
             var traceId = telemetry.Id;
-            var version = "00";
-            var flags = _client.Context.Flags;
-
-            var headerValue = $"{version}-{parentId}-{traceId}-{flags}";
-            request.Headers.Add("traceparent", headerValue);
+            
+            if (_configuration.UseOpenTelemetryHeaders)
+            {
+                var version = "00";
+                var flags = _client.Context.Flags;
+                request.Headers.Add("traceparent", $"{version}-{parentId}-{traceId}-{flags}");
+            }
+            else
+            {
+                request.Headers.Add("Request-Id", $"|{parentId}.{traceId}.");
+            }
         }
     }
 

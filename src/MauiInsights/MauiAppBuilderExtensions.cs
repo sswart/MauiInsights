@@ -27,7 +27,7 @@ public static class MauiAppBuilderExtensions
         _sessionId = new SessionId();
         appBuilder.Services.AddSingleton(_sessionId);
         SetupTelemetryClient(appBuilder, configuration, configureTelemetry);
-        SetupHttpDependecyTracking(appBuilder);
+        SetupHttpDependecyTracking(appBuilder, configuration);
         SetupPageViewTelemetry();
         SetupLogger(appBuilder, configuration);
         SetupTelemetryLifecycleEvents(appBuilder);
@@ -120,9 +120,9 @@ public static class MauiAppBuilderExtensions
         appBuilder.Services.AddSingleton(_client);
     }
 
-    private static void SetupHttpDependecyTracking(MauiAppBuilder appBuilder)
+    private static void SetupHttpDependecyTracking(MauiAppBuilder appBuilder, MauiInsightsConfiguration configuration)
     {
-        appBuilder.Services.AddTransient<DependencyTrackingHandler>();
+        appBuilder.Services.AddTransient(provider => new DependencyTrackingHandler(provider.GetRequiredService<TelemetryClient>(), configuration));
         appBuilder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IHttpMessageHandlerBuilderFilter, DependencyTrackingHandlerFilter>());
     }
 
