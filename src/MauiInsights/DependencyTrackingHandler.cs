@@ -57,7 +57,7 @@ namespace MauiInsights
             var parentId = telemetry.Context.Operation.Id;
             var traceId = telemetry.Id;
             
-            if (_configuration.UseOpenTelemetryHeaders)
+            if (_configuration.EnableW3CCorrelation)
             {
                 var version = "00";
                 var flags = _client.Context.Flags;
