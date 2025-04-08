@@ -1,4 +1,5 @@
-﻿using Microsoft.ApplicationInsights;
+﻿using System.Globalization;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Extensions.Http;
 
@@ -44,8 +45,9 @@ namespace MauiInsights
 
         private void Enrich(DependencyTelemetry telemetry, HttpResponseMessage? response)
         {
-            telemetry.Success = response != null;
-            telemetry.ResultCode = response?.StatusCode.ToString();
+            int statusCode = Convert.ToInt32(response?.StatusCode);
+            telemetry.Success = (statusCode > 0) && (statusCode < 400);
+            telemetry.ResultCode = statusCode > 0 ? statusCode.ToString(CultureInfo.InvariantCulture) : string.Empty;
         }
 
         private void SetOpenTelemetryHeaders(HttpRequestMessage request, DependencyTelemetry telemetry)
